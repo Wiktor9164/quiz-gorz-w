@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Gorzów Wielkopolski - Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 10px;
+            padding-top: max(10px, env(safe-area-inset-top));
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            height: 100%;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            z-index: 10;
+            padding: 5px 0;
+        }
+
+        .header h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .build-info {
+            display: none; /* hidden per user request */
+            font-size: 0.7em;
+            color: rgba(255,255,255,0.8);
+            margin-top: 3px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            color: white;
+            font-size: 0.9em;
+            z-index: 10;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(0,0,0,0.3);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85em;
+        }
+
+        .hearts {
+            display: flex;
+            gap: 4px;
+        }
+
+        .heart {
+            font-size: 1.2em;
+        }
+
+        .question-box {
+            background: rgba(255,255,255,0.95);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1em;
+            color: #333;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 10;
+            width: 95%;
+            max-width: 400px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas {
+            border: 3px solid white;
+            border-radius: 10px;
+            background: linear-gradient(180deg, #87ceeb 0%, #e0f6ff 100%);
+            display: block;
+            max-width: 100%;
+            max-height: 50vh;
+            flex-grow: 1;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        /* Progress bar under question */
+        .progress {
+            width: 95%;
+            max-width: 800px;
+            height: 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        #progressBar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg,#ffd700,#ff8a00);
+            transition: width 350ms ease;
+        }
+
+        /* small icon button for sound */
+        .icon-btn {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 6px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.0em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            width: 100%;
+            z-index: 10;
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            font-size: 1.1em;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+            flex: 1;
+            max-width: 150px;
+            touch-action: manipulation;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-left {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%);
+        }
+
+        .btn-right {
+            background: linear-gradient(135deg, #51CF66 0%, #40C057 100%);
+        }
+
+        .game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            padding: 30px 20px;
+            border-radius: 20px;
+            color: white;
+            text-align: center;
+            z-index: 1000;
+            display: none;
+            border: 3px solid #ffd700;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+
+        .game-over h2 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .game-over p {
+            font-size: 1.1em;
+            margin: 10px 0;
+        }
+
+        .game-over button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1em;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .game-over button:active {
+            transform: scale(0.95);
+        }
+
+        /* Welcome screen styles */
+        #welcomeScreen {
+            position: fixed;
+            inset: 0;
+            opacity: 0; /* hidden until .visible */
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4));
+            z-index: 2000;
+            padding: 20px;
+            transition: opacity 280ms ease;
+        }
+        #welcomeScreen.visible { opacity: 1; pointer-events: auto; }
+        #welcomeScreen .welcome-content {
+            background: #fff;
+            padding: 18px;
+            border-radius: 12px;
+            max-width: 440px;
+            text-align: center;
+            color: #222;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: translateY(6px);
+            transition: transform 280ms ease;
+        }
+        #welcomeScreen.visible .welcome-content { transform: translateY(0); }
+        #startBtn { transition: transform 200ms ease; }
+        #startBtn:active { transform: scale(0.98); }
+        #startBtn.pulse { animation: pulse 1.6s infinite; }
+        @keyframes pulse { 0% { transform: scale(1);} 50% { transform: scale(1.03);} 100% { transform: scale(1);} }
+        #welcomeScreen .map-wrap {
+            margin: 10px auto;
+        }
+
+        /* tutorial modal */
+        #tutorialOverlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.5);
+            z-index: 3000;
+        }
+        #tutorialOverlay .box {
+            background:#fff;padding:14px;border-radius:10px;max-width:420px;text-align:left;color:#222;box-shadow:0 10px 30px rgba(0,0,0,0.2)
+        }
+
+        /* Confetti canvas should be invisible except for drawn particles */
+        #confettiCanvas {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            pointer-events: none;
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.2em;
+            }
+
+            .stat-item {
+                padding: 5px 10px;
+                font-size: 0.75em;
+            }
+
+            .question-box {
+                font-size: 0.9em;
+                padding: 10px;
+                min-height: 50px;
+            }
+
+            .btn {
+                padding: 14px 18px;
+                font-size: 0.95em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="welcomeScreen">
+        <div class="welcome-content">
+            <h1>Witaj w Quizie o Gorzowie i Ziemi Lubuskiej</h1>
+            <div class="map-wrap">
+                <canvas id="miniMap" width="260" height="160" style="width:260px;height:160px;border-radius:8px;display:block;background:#e8f6ff"></canvas>
+                <div style="font-size:12px;color:#17324d;margin-top:6px">Gorzów Wielkopolski — mapa (kliknij punkt, by zobaczyć informacje)</div>
+            </div>
+            <p class="welcome-text">Poznaj region, odwiedź atrakcje i weź udział w promocyjnej wycieczce!</p>
+            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;align-items:center;margin-top:8px">
+                <label style="font-size:14px;color:#333">Poziom:</label>
+                <select id="difficultySelect" style="padding:8px;border-radius:8px;border:1px solid #ddd">
+                    <option value="easy">Łatwy (4 serca)</option>
+                    <option value="normal" selected>Normalny (3 serca)</option>
+                    <option value="hard">Trudny (2 serca)</option>
+                </select>
+                <span id="difficultyPreview" style="font-size:13px;color:#333;margin-left:8px">Serca: 3</span>
+                <button id="tutorialBtn" class="btn" style="background:#4a90e2">Instrukcja</button>
+                <button id="startBtn" class="btn">Rozpocznij</button>
+            </div>
+            <p id="welcomeHint" style="font-size:0.9em;color:#555;margin-top:8px">Sterowanie: dotyk / przyciski / klawiatura – strzałki LEWO/PRAWO</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🏛️ Gorzów Quiz</h1>
+            <div class="build-info" id="build"></div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="hearts" id="hearts">
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <span>⭐ <span id="score">0</span>/60</span>
+            </div>
+            <div class="stat-item">
+                <span>📝 <span id="question-num">1</span>/60</span>
+            </div>
+        </div>
+
+        <div class="question-box" id="question-box">
+            Zaznajom się z grą...
+        </div>
+
+        <div class="progress" aria-hidden="true">
+            <div id="progressBar" style="width:0%"></div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+        <canvas id="confettiCanvas" style="position:fixed;inset:0;pointer-events:none;z-index:1200"></canvas>
+
+        <div class="controls">
+            <button class="btn btn-left" id="leftBtn">⬅️ LEWO</button>
+            <button class="btn btn-right" id="rightBtn">PRAWO ➡️</button>
+        </div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <h2 id="gameOverTitle">Koniec Gry!</h2>
+        <p id="gameOverText"></p>
+        <p>Twój wynik: <span id="finalScore">0</span>/60</p>
+        <button id="restartBtn">Graj ponownie</button>
+        <button id="visitBtn" style="display:none;margin-left:8px">Dowiedz się więcej</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Configurable promotional URL (update if you have a real link)
+        const promoUrl = 'https://pl.wikipedia.org/wiki/Bulwar_Nadwarcia%C5%84ski_w_Gorzowie_Wielkopolskim';
+        let soundEnabled = true;
+        let audioCtx = null; // created on first sound play
+
+
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.type = type === 'correct' ? 'sine' : 'square';
+            o.frequency.value = type === 'correct' ? 880 : 220;
+            g.gain.value = 0.05;
+            o.connect(g);
+            g.connect(audioCtx.destination);
+            o.start();
+            setTimeout(() => { o.stop(); }, 150);
+        }
+
+        function shuffleArray(a) {
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+        }
+
+        function updateProgressBar() {
+            const el = document.getElementById('progressBar');
+            if (!el || !questions || questions.length === 0) return;
+            const pct = Math.round((currentQuestion / questions.length) * 100);
+            el.style.width = pct + '%';
+        }
+
+        // Keyboard support
+        window.addEventListener('keydown', (e) => {
+            if (document.getElementById('welcomeScreen').style.display !== 'flex') {
+                if (e.key === 'ArrowLeft') selectDoor(0);
+                if (e.key === 'ArrowRight') selectDoor(1);
+                if (e.key === 'Enter') {
+                    if (selectedDoorIndex !== null) {
+                        chooseAnswer(doors[selectedDoorIndex]);
+                    }
+                }
+            }
+        });
+
+        // Handle clicking on doors directly
+        canvas.addEventListener('click', (e) => {
+            if (!gameActive || gameState !== 'normal') return;
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+            for (const d of doors) {
+                if (x >= d.x && x <= d.x + d.width && y >= d.y && y <= d.y + d.height) {
+                    chooseAnswer(d);
+                    break;
+                }
+            }
+        });
+        canvas.addEventListener('touchstart', (e) => {
+            if (!gameActive || gameState !== 'normal') return;
+            const t = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = (t.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (t.clientY - rect.top) * (canvas.height / rect.height);
+            for (const d of doors) {
+                if (x >= d.x && x <= d.x + d.width && y >= d.y && y <= d.y + d.height) {
+                    chooseAnswer(d);
+                    break;
+                }
+            }
+        });
+
+
+        // Responsywny canvas
+        function resizeCanvas() {
+            const container = document.querySelector('.container');
+            const width = Math.min(window.innerWidth - 20, 800);
+            const height = Math.min(window.innerHeight * 0.5, 600);
+            
+            canvas.width = width;
+            canvas.height = height;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Build hidden per user preference (not displayed) -- no runtime stamp set
+
+        const questions = [
+    // HISTORIA I SYMBOLE
+    { question: "Jak brzmiała niemiecka nazwa miasta do 1945 roku?", wrong: "Grünberg", correct: "Landsberg an der Warthe" },
+    { question: "W którym roku margrabia Jan Askańczyk nadał miastu prawa miejskie?", wrong: "1357", correct: "1257" },
+    { question: "Co znajduje się w herbie Gorzowa Wielkopolskiego?", wrong: "Czarny orzeł i miecz", correct: "Czerwony orzeł trzymający liście koniczyny" },
+    { question: "Jak nazywa się najstarszy zachowany budynek w mieście?", wrong: "Ratusz", correct: "Katedra pw. Wniebowzięcia NMP" },
+    { question: "Na ilu wzgórzach, według tradycji, położony jest Gorzów?", wrong: "3", correct: "7" },
+    { question: "Który z wymienionych obiektów jest symbolem dawnego handlu nad Wartą?", wrong: "Ratusz", correct: "Spichlerz (obecnie muzeum)" },
+    { question: "W którym roku Gorzów stał się siedzibą wojewody lubuskiego?", wrong: "1989", correct: "1999" },
+    { question: "Jak nazywał się ród, który założył miasto?", wrong: "Piastowie", correct: "Askańczycy" },
+    { question: "Który element obronny miasta przetrwał częściowo do dziś przy ul. Zabytkowej?", wrong: "Fosa", correct: "Mury obronne" },
+    { question: "Jak nazywa się rzeka, nad którą leży Gorzów?", wrong: "Odra", correct: "Warta" },
+
+    // ARCHITEKTURA I MIEJSCA
+    { question: "Jak potocznie nazywa się punkt widokowy przy Moście Staromiejskim?", wrong: "Wieża Eiffla", correct: "Pająk (Infuła)" },
+    { question: "Który most w Gorzowie bywa porównywany (z przymrużeniem oka) do Golden Gate?", wrong: "Most Lubuski", correct: "Most Staromiejski" },
+    { question: "Gdzie w Gorzowie znajdziemy replikę Wozu Drzymały?", wrong: "W Katedrze", correct: "W Parku Wiosny Ludów (Park Róż)" },
+    { question: "Jak nazywa się fontanna na Starym Rynku ufundowana przez przemysłowca?", wrong: "Fontanna Neptuna", correct: "Fontanna Pauckscha" },
+    { question: "Która dzielnica Gorzowa potocznie nazywana jest 'Manhattanem'?", wrong: "Zamoście", correct: "Górczyn" },
+    { question: "Gdzie mieści się główna siedziba Wojewódzkiej i Miejskiej Biblioteki Publicznej?", wrong: "W nowoczesnym biurowcu", correct: "W zabytkowej Willi Hansa Lehmana" },
+    { question: "Jak nazywa się najstarszy park w Gorzowie (założony w XIX wieku)?", wrong: "Park Róż", correct: "Park Siemiradzkiego" },
+    { question: "Co znajduje się na szczycie 'Schodów Donikąd'?", wrong: "Restauracja", correct: "Punkt widokowy (dawniej planowano tam amfiteatr)" },
+    { question: "Gdzie w Gorzowie można podziwiać egzotyczne rośliny i palmy?", wrong: "W Katedrze", correct: "W Palmiarni (ul. Prudla)" },
+    { question: "Który budynek doznał poważnych zniszczeń w wyniku pożaru wieży w 2017 roku?", wrong: "Teatr", correct: "Katedra" },
+
+    // SPORT (ŻUŻEL I INNE)
+    { question: "Jak nazywa się legendarny klub żużlowy z Gorzowa?", wrong: "Falubaz", correct: "Stal Gorzów" },
+    { question: "Imię którego patrona nosi stadion żużlowy w Gorzowie?", wrong: "Bartosza Zmarzlika", correct: "Edwarda Jancarza" },
+    { question: "Ile razy Bartosz Zmarzlik zdobywał tytuł Indywidualnego Mistrza Świata reprezentując Stal?", wrong: "0", correct: "2 (2019, 2020)" },
+    { question: "W jakiej dyscyplinie sukcesy odnosi drużyna AZS AJP Gorzów?", wrong: "Piłka ręczna", correct: "Koszykówka kobiet" },
+    { question: "Jak nazywa się gorzowski klub piłkarski grający na stadionie przy ul. Olimpijskiej?", wrong: "Lech Poznań", correct: "Stilon Gorzów" },
+    { question: "Z którym miastem Gorzów toczy najsłynniejszą 'świętą wojnę' sportową?", wrong: "Ze Szczecinem", correct: "Z Zieloną Górą" },
+    { question: "Który gorzowski sportowiec ma swój pomnik przy stadionie żużlowym?", wrong: "Zbigniew Boniek", correct: "Edward Jancarz" },
+    { question: "Jak nazywa się hala widowiskowo-sportowa oddana do użytku w 2023 roku?", wrong: "Spodek", correct: "Arena Gorzów" },
+    { question: "W której dyscyplinie Gorzów słynie z wielu medalistów olimpijskich (np. Tomasz Kucharski)?", wrong: "Narciarstwo", correct: "Wioślarstwo/Kajakarstwo" },
+    { question: "Gdzie w Gorzowie odbywają się zawody Grand Prix na żużlu?", wrong: "Na lotnisku", correct: "Na Stadionie im. Edwarda Jancarza" },
+
+    // KULTURA I SZTUKA
+    { question: "Jak nazywa się gorzowski teatr dramatyczny?", wrong: "Teatr Wielki", correct: "Teatr im. Juliusza Osterwy" },
+    { question: "Który znany międzynarodowy festiwal kultury romskiej odbywa się w Gorzowie?", wrong: "Woodstock", correct: "Romane Dyvesa" },
+    { question: "Kto jest twórcą i wieloletnim dyrektorem festiwalu Romane Dyvesa?", wrong: "Czesław Niemen", correct: "Edward Dębicki" },
+    { question: "Jak nazywa się najstarsze kino w Gorzowie (obecnie DKF)?", wrong: "Multikino", correct: "Kino 60 Krzeseł" },
+    { question: "Która światowej sławy pisarka urodziła się w Landsbergu (Gorzowie)?", wrong: "Wisława Szymborska", correct: "Christa Wolf" },
+    { question: "Jak nazywa się cykliczna impreza koncertowa odbywająca się na bulwarach?", wrong: "Przystanek Jezus", correct: "Dobry Wieczór Gorzów" },
+    { question: "Gdzie znajduje się Filharmonia Gorzowska?", wrong: "W dawnym kościele", correct: "W nowoczesnym Centrum Edukacji Artystycznej" },
+    { question: "Jak nazywa się znany gorzowski rzeźbiarz, autor pomników m.in. Jancarza i Włodarza?", wrong: "Xawery Dunikowski", correct: "Andrzej Moskaluk" },
+    { question: "Która rzeźba na Starym Rynku przedstawia postać z wiadrami?", wrong: "Syrenka", correct: "Przekupka (Bamberka)" },
+    { question: "Jak nazywa się jazzowy klub, jeden z najstarszych w Polsce?", wrong: "Blue Note", correct: "Jazz Club pod Filarami" },
+
+    // CIEKAWOSTKI I ŻYCIE MIASTA
+    { question: "Co to jest 'Gorzowska Bułka z Pieczarkami'?", wrong: "Rodzaj pizzy", correct: "Kultowy fast-food z czasów PRL" },
+    { question: "Gdzie w Gorzowie znajdziemy 'Aleję Gwiazd Żużla'?", wrong: "W parku", correct: "Na Moście Staromiejskim / Bulwarze" },
+    { question: "Jak nazywa się popularne kąpielisko miejskie w Gorzowie?", wrong: "Bałtyk", correct: "Jezioro Nierzym (lub rzeka Warta)" },
+    { question: "Ile linii tramwajowych (standardowo) funkcjonuje w Gorzowie?", wrong: "15", correct: "3" },
+    { question: "Jak nazywa się gorzowski system rowerów miejskich?", wrong: "Veturilo", correct: "Gorzowski Rower Miejski" },
+    { question: "Który tramwaj jest nowoczesnym nabytkiem gorzowskiej komunikacji (producent Pesa)?", wrong: "Konstal", correct: "Twist" },
+    { question: "Co znajduje się w 'Kapsule Czasu' pod iglicą Katedry?", wrong: "Złoto", correct: "Dokumenty i pamiątki dla przyszłych pokoleń" },
+    { question: "Jak nazywa się postać z gorzowskiej legendy, która ma swój pomnik z rowerem?", wrong: "Król", correct: "Szymon Gięty" },
+    { question: "W którym miejscu Gorzowa odbywają się największe imprezy plenerowe (np. Dni Gorzowa)?", wrong: "Na dachu galerii", correct: "Na Nadwarciańskich Bulwarach / Błoniach" },
+    { question: "Jak nazywa się największe centrum handlowe w Gorzowie?", wrong: "Złote Tarasy", correct: "Nova Park" },
+
+    // PRZYRODA I GEOGRAFIA
+    { question: "Który kompleks leśny graniczy bezpośrednio z Gorzowem od północy?", wrong: "Puszcza Białowieska", correct: "Puszcza Piastowska / Barlinecka" },
+    { question: "Jak nazywa się rezerwat przyrody w granicach miasta z rzadkimi roślinami?", wrong: "Stepowy", correct: "Gorzowskie Murawy" },
+    { question: "Jak nazywa się rzeczka, która wpada do Warty w samym centrum Gorzowa?", wrong: "Wisła", correct: "Kłodawka" },
+    { question: "Przez ile mostów drogowych można obecnie przejechać nad Wartą w Gorzowie?", wrong: "1", correct: "3 (Staromiejski, Lubuski, Wieprzyce)" },
+    { question: "W jakiej części Polski leży Gorzów Wielkopolski?", wrong: "Południowo-wschodniej", correct: "Północno-zachodniej" },
+    { question: "Z jaką krainą historyczną (oprócz Ziemi Lubuskiej) związany jest Gorzów?", wrong: "Śląsk", correct: "Nowa Marchia" },
+    { question: "Jaki kolor dominuje w logotypie promocyjnym Gorzowa?", wrong: "Różowy", correct: "Zielony i Niebieski" },
+    { question: "Gorzów jest jednym z dwóch miast wojewódzkich w lubuskim. Gdzie urzęduje Marszałek?", wrong: "W Gorzowie", correct: "W Zielonej Górze" },
+    { question: "Który znany trakt handlowy przebiegał dawniej przez Gorzów?", wrong: "Jedwabny Szlak", correct: "Via Marchia" },
+    { question: "Jak nazywa się najwyższe wzniesienie w okolicy, popularne wśród spacerowiczów?", wrong: "Rysy", correct: "Wzgórze Wolności" }
+];
+
+        let currentQuestion = 0;
+        let hearts = 3;
+        let score = 0;
+        let gameActive = true;
+
+        let gameState = 'normal';
+        let animationTime = 0;
+        let selectedDoor = null;
+        let selectedDoorIndex = null;
+
+        let player = {
+            x: canvas.width / 2,
+            y: canvas.height - 100,
+            width: 40,
+            height: 40,
+            speed: 8,
+            color: '#FF6B6B'
+        };
+
+        let doors = [];
+
+        function initializeDoors() {
+            const doorWidth = Math.max(80, canvas.width / 12);
+            const doorHeight = Math.max(120, canvas.height / 4);
+            const doorY = 100;
+
+            doors = [
+                {
+                    x: canvas.width * 0.15,
+                    y: doorY,
+                    width: doorWidth,
+                    height: doorHeight,
+                    isCorrect: false,
+                    color: '#FF6B6B',
+                    text: 'BŁĘDNA',
+                    hovered: false,
+                    openAmount: 0
+                },
+                {
+                    x: canvas.width * 0.65,
+                    y: doorY,
+                    width: doorWidth,
+                    height: doorHeight,
+                    isCorrect: true,
+                    color: '#51CF66',
+                    text: 'POPRAWNA',
+                    hovered: false,
+                    openAmount: 0
+                }
+            ];
+        }
+
+        function drawBackground() {
+            ctx.fillStyle = '#87ceeb';
+            ctx.fillRect(0, 0, canvas.width, canvas.height / 2);
+
+            ctx.fillStyle = '#e8d7c3';
+            ctx.fillRect(0, canvas.height / 2, canvas.width, canvas.height / 2);
+
+            if (gameState === 'falling') {
+                const intensity = Math.min(animationTime / 750, 1);
+                ctx.fillStyle = `rgba(0, 0, 0, ${intensity * 0.8})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                for (let i = 0; i < 30; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = canvas.height * (animationTime / 1500) + (Math.random() * 50);
+                    ctx.fillStyle = `rgba(100, 0, 100, ${Math.random() * 0.6})`;
+                    ctx.fillRect(x, y, 4, 4);
+                }
+            }
+        }
+
+        function drawPlayer() {
+            let drawX = player.x;
+            let drawY = player.y;
+            let drawAlpha = 1;
+
+            if (gameState === 'entering') {
+                const progress = Math.min(animationTime / 600, 1);
+                drawX = selectedDoor.x + selectedDoor.width / 2 + (player.x - (selectedDoor.x + selectedDoor.width / 2)) * (1 - progress);
+                drawY = selectedDoor.y + 50 + (player.y - (selectedDoor.y + 50)) * (1 - progress);
+                drawAlpha = 1 - progress * 0.5;
+            }
+
+            if (gameState === 'falling') {
+                const progress = Math.min(animationTime / 1500, 1);
+                drawX = canvas.width / 2 + (Math.random() - 0.5) * 20;
+                drawY = -50 + progress * (canvas.height + 200);
+                drawAlpha = Math.max(0, 1 - progress * 0.2);
+            }
+
+            ctx.globalAlpha = drawAlpha;
+            ctx.fillStyle = player.color;
+            ctx.fillRect(drawX - player.width / 2, drawY - player.height / 2, player.width, player.height);
+
+            ctx.fillStyle = '#FFD4A3';
+            ctx.beginPath();
+            ctx.arc(drawX, drawY - player.height / 2 - 15, 15, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(drawX - 5, drawY - player.height / 2 - 15, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(drawX + 5, drawY - player.height / 2 - 15, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            if (gameState === 'falling') {
+                ctx.arc(drawX, drawY - player.height / 2 - 12, 3, 0, Math.PI * 2);
+            } else {
+                ctx.arc(drawX, drawY - player.height / 2 - 12, 5, 0, Math.PI);
+            }
+            ctx.stroke();
+
+            ctx.globalAlpha = 1;
+        }
+
+        function drawDoors() {
+            doors.forEach(door => {
+                if (gameState === 'entering' && selectedDoor === door) {
+                    door.openAmount = Math.min(animationTime / 600, 1);
+                }
+
+                const openGap = door.openAmount * 40;
+
+                // Neutral door panels - do not use door.color to avoid giving hints
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(door.x, door.y, door.width / 2 - openGap / 2, door.height);
+                ctx.fillRect(door.x + door.width / 2 + openGap / 2, door.y, door.width / 2 - openGap / 2, door.height);
+
+                // Knob
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(door.x + door.width / 2, door.y + door.height / 2, 8, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw text clipped to door area and wrapped so it never overflows
+                ctx.save();
+                const padding = 10;
+                ctx.beginPath();
+                ctx.rect(door.x + padding, door.y + padding, door.width - padding * 2, door.height - padding * 2);
+                ctx.clip();
+
+                let fs = Math.max(14, Math.floor(door.width / 6));
+                ctx.fillStyle = '#FFF';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+
+                const maxTextWidth = door.width - padding * 2;
+                ctx.font = `bold ${fs}px Arial`;
+                while (fs > 10 && ctx.measureText(door.text).width > maxTextWidth) {
+                    fs--;
+                    ctx.font = `bold ${fs}px Arial`;
+                }
+
+                // Build lines, splitting on spaces and also breaking very long words
+                const rawWords = door.text.split(' ');
+                const lines = [];
+                let current = '';
+
+                function splitLongWord(word) {
+                    const parts = [];
+                    let piece = '';
+                    for (let c = 0; c < word.length; c++) {
+                        piece += word[c];
+                        if (ctx.measureText(piece).width > maxTextWidth) {
+                            // remove last char to keep piece within width
+                            const last = piece.slice(0, -1);
+                            if (last.length) parts.push(last);
+                            piece = word[c];
+                        }
+                    }
+                    if (piece) parts.push(piece);
+                    return parts;
+                }
+
+                for (let i = 0; i < rawWords.length; i++) {
+                    const w = rawWords[i];
+                    // If single word is wider than maxTextWidth, split it
+                    if (ctx.measureText(w).width > maxTextWidth) {
+                        const parts = splitLongWord(w);
+                        for (let p = 0; p < parts.length; p++) {
+                            const test = current ? current + ' ' + parts[p] : parts[p];
+                            if (ctx.measureText(test).width <= maxTextWidth) {
+                                current = test;
+                            } else {
+                                if (current) lines.push(current);
+                                current = parts[p];
+                            }
+                        }
+                    } else {
+                        const test = current ? current + ' ' + w : w;
+                        if (ctx.measureText(test).width <= maxTextWidth) {
+                            current = test;
+                        } else {
+                            if (current) lines.push(current);
+                            current = w;
+                        }
+                    }
+                }
+                if (current) lines.push(current);
+
+                const lineHeight = fs + 6;
+                const maxLines = Math.floor((door.height - padding * 2) / lineHeight);
+                if (lines.length > maxLines) {
+                    lines.length = maxLines;
+                    let last = lines[lines.length - 1];
+                    while (ctx.measureText(last + '...').width > maxTextWidth && last.length > 0) {
+                        last = last.slice(0, -1);
+                    }
+                    lines[lines.length - 1] = last + '...';
+                }
+
+                // Start a bit higher so text doesn't touch bottom and avoid clipping
+                const raisePx = 6;
+                const startY = door.y + door.height - padding - (lines.length * lineHeight) - raisePx;
+                for (let i = 0; i < lines.length; i++) {
+                    ctx.fillText(lines[i], door.x + door.width / 2, startY + i * lineHeight);
+                }
+
+                ctx.restore();
+
+                // Subtle neutral stroke so there is still definition but no color hint
+                ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(door.x, door.y, door.width, door.height);
+
+                if (gameState !== 'entering' || selectedDoor !== door) {
+                    door.openAmount = 0;
+                }
+            });
+        }
+
+        function updateDoorHover() {
+            doors.forEach(door => {
+                const distX = Math.abs(player.x - (door.x + door.width / 2));
+                const distY = Math.abs(player.y - (door.y + door.height / 2));
+                door.hovered = distX < 80 && distY < 120;
+            });
+        }
+
+        function chooseAnswer(door) {
+            if (gameActive === false || gameState !== 'normal') return;
+
+            gameActive = false;
+            selectedDoor = door;
+            const isCorrect = door.isCorrect;
+
+            if (isCorrect) {
+                playSound('correct');
+                gameState = 'entering';
+                animationTime = 0;
+
+                setTimeout(() => {
+                    score += 1;
+                    document.getElementById('score').textContent = score;
+                    currentQuestion++;
+
+                    if (currentQuestion >= questions.length) {
+                        endGame(true);
+                    } else {
+                        gameState = 'normal';
+                        player.x = canvas.width / 2;
+                        player.y = canvas.height - 100;
+                        selectedDoorIndex = null;
+                        updateQuestion();
+                        gameActive = true;
+                    }
+                }, 600);
+            } else {
+                playSound('incorrect');
+                gameState = 'entering';
+                animationTime = 0;
+
+                setTimeout(() => {
+                    gameState = 'falling';
+                    animationTime = 0;
+                    hearts--;
+                    updateHearts();
+
+                    setTimeout(() => {
+                        if (hearts === 0) {
+                            endGame(false);
+                        } else {
+                            gameState = 'normal';
+                            player.x = canvas.width / 2;
+                            player.y = canvas.height - 100;
+                            selectedDoorIndex = null;
+                            gameActive = true;
+                        }
+                    }, 1500);
+                }, 600);
+            }
+        }
+
+        function updateQuestion() {
+            if (currentQuestion < questions.length) {
+                const q = questions[currentQuestion];
+                document.getElementById('question-box').textContent = q.question;
+                document.getElementById('question-num').textContent = currentQuestion + 1;
+                updateProgressBar();
+
+                if (Math.random() > 0.5) {
+                    doors[0].isCorrect = true;
+                    doors[1].isCorrect = false;
+                    doors[0].text = q.correct;
+                    doors[1].text = q.wrong;
+                    doors[0].color = '#51CF66';
+                    doors[1].color = '#FF6B6B';
+                } else {
+                    doors[0].isCorrect = false;
+                    doors[1].isCorrect = true;
+                    doors[0].text = q.wrong;
+                    doors[1].text = q.correct;
+                    doors[0].color = '#FF6B6B';
+                    doors[1].color = '#51CF66';
+                }
+            }
+        }
+
+        function updateHearts() {
+            const heartsEl = document.getElementById('hearts');
+            heartsEl.innerHTML = '';
+            for (let i = 0; i < hearts; i++) {
+                heartsEl.innerHTML += '<span class="heart">❤️</span>';
+            }
+        }
+
+        function endGame(won) {
+            gameActive = false;
+            const gameOverDiv = document.getElementById('gameOver');
+            const titleEl = document.getElementById('gameOverTitle');
+            const textEl = document.getElementById('gameOverText');
+            const scoreEl = document.getElementById('finalScore');
+
+            scoreEl.textContent = score;
+
+            if (won) {
+                titleEl.textContent = '🎉 Gratulacje! 🎉';
+                textEl.textContent = 'Już znasz teorię, teraz czas na praktykę! Zapraszamy na Bulwar Nadwarciański!';
+                const visitBtn = document.getElementById('visitBtn');
+                if (visitBtn) visitBtn.style.display = 'inline-block';
+
+                // set progress bar to 100%
+                const pb = document.getElementById('progressBar'); if (pb) pb.style.width = '100%';
+
+                // Play confetti animation
+                startConfetti(1800);
+            } else {
+                titleEl.textContent = '💔 Koniec Gry! 💔';
+                textEl.textContent = 'Straciłeś wszystkie serca.';
+                const visitBtn = document.getElementById('visitBtn');
+                if (visitBtn) visitBtn.style.display = 'none';
+            }
+
+            gameOverDiv.style.display = 'block';
+            // allow choosing difficulty again after game ends
+            document.getElementById('difficultySelect').disabled = false;
+        }
+
+        // Mobile buttons
+        function selectDoor(index) {
+            if (gameState === 'normal' && gameActive) {
+                selectedDoorIndex = index;
+            }
+        }
+
+        document.getElementById('leftBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            selectDoor(0);
+        });
+
+        document.getElementById('leftBtn').addEventListener('click', () => {
+            selectDoor(0);
+        });
+
+        document.getElementById('rightBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            selectDoor(1);
+        });
+
+        document.getElementById('rightBtn').addEventListener('click', () => {
+            selectDoor(1);
+        });
+
+        function update() {
+            if (gameState === 'normal' && gameActive) {
+                if (selectedDoorIndex !== null) {
+                    const targetDoor = doors[selectedDoorIndex];
+                    const targetX = targetDoor.x + targetDoor.width / 2;
+
+                    const dx = targetX - player.x;
+                    if (Math.abs(dx) > 4) {
+                        player.x += dx * 0.2; // interpolate for smooth movement
+                    } else {
+                        player.x = targetX;
+                        chooseAnswer(targetDoor);
+                    }
+                }
+
+                updateDoorHover();
+            }
+
+            if (gameState === 'entering' || gameState === 'falling') {
+                animationTime += 16;
+            }
+        }
+
+        function draw() {
+            drawBackground();
+            drawDoors();
+            drawPlayer();
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // show welcome screen and wait for Start button (use class for fade)
+        const welcomeEl = document.getElementById('welcomeScreen');
+        welcomeEl.classList.add('visible');
+        // Add pulsing start button to invite tap
+        document.getElementById('startBtn').classList.add('pulse');
+        // rotating tips
+        const tips = [
+            'Sterowanie: dotyk / przyciski / strzałki klawiatury',
+            'Krótki czas reakcji = szybki punkt! (spróbuj szybko wybierać)',
+            'Sprawdź Bulwar Nadwarciański po wygranej!',
+            'Wybierz poziom trudności przed startem'
+        ];
+        let tipIdx = 0;
+        const tipEl = document.getElementById('welcomeHint');
+        const tipInterval = setInterval(() => {
+            tipIdx = (tipIdx + 1) % tips.length;
+            tipEl.textContent = tips[tipIdx];
+        }, 3500);
+
+        // Generate welcome mini-map (stylized, client-side)
+        const miniMap = document.getElementById('miniMap');
+        const miniCtx = miniMap.getContext('2d');
+        let miniDPR = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+        function resizeMiniMap(){
+            const w = miniMap.clientWidth;
+            const h = miniMap.clientHeight;
+            miniMap.width = Math.floor(w * miniDPR);
+            miniMap.height = Math.floor(h * miniDPR);
+            miniCtx.setTransform(miniDPR,0,0,miniDPR,0,0);
+            drawMiniMap();
+        }
+
+        const poiList = [
+            {id:'Gorzów', x:150, y:70, color:'#e74c3c', desc:'Gorzów Wielkopolski - centrum'},
+            {id:'Palmiarnia', x:110, y:40, color:'#51CF66', desc:'Palmiarnia w Gorzowie'},
+            {id:'Park', x:60, y:110, color:'#3fb54a', desc:'Parki i tereny zielone'},
+            {id:'MRU', x:210, y:24, color:'#ffd700', desc:'Międzyrzecki Rejon Umocniony (MRU)'}
+        ];
+
+        function drawMiniMap(){
+            const W = miniMap.width/miniDPR;
+            const H = miniMap.height/miniDPR;
+            miniCtx.clearRect(0,0,W,H);
+            // background
+            miniCtx.fillStyle = '#e8f6ff';
+            miniCtx.fillRect(0,0,W,H);
+            // river (stylized Warta)
+            miniCtx.fillStyle = '#6ec7ff';
+            miniCtx.beginPath();
+            miniCtx.moveTo(0,H*0.3);
+            miniCtx.bezierCurveTo(W*0.25,H*0.28,W*0.5,H*0.36,W,H*0.34);
+            miniCtx.lineTo(W,H*0.44);
+            miniCtx.bezierCurveTo(W*0.5,H*0.44,W*0.25,H*0.38,0,H*0.44);
+            miniCtx.closePath();
+            miniCtx.fill();
+            // parks
+            miniCtx.fillStyle = 'rgba(78,181,98,0.9)';
+            miniCtx.fillRect(W*0.1,H*0.6,W*0.24,H*0.18);
+            miniCtx.fillRect(W*0.5,H*0.1,W*0.18,H*0.15);
+            // POIs
+            poiList.forEach(p => {
+                miniCtx.beginPath();
+                miniCtx.fillStyle = p.color;
+                miniCtx.arc(p.x, p.y, p.id==='Gorzów'?6:4, 0, Math.PI*2);
+                miniCtx.fill();
+                // label
+                miniCtx.fillStyle = '#17324d';
+                miniCtx.font = '10px Arial';
+                miniCtx.textAlign = 'left';
+                miniCtx.fillText(p.id, p.x + 8, p.y + 3);
+            });
+            // pulse effect on Gorzów
+            const t = (Date.now()/500)%2;
+            const pulse = 1 + Math.abs(1 - t)*0.8;
+            miniCtx.beginPath(); miniCtx.strokeStyle='rgba(231,76,60,0.35)'; miniCtx.lineWidth=2; miniCtx.arc(150,70,6*pulse,0,Math.PI*2); miniCtx.stroke();
+        }
+
+        function miniMapClick(e){
+            const rect = miniMap.getBoundingClientRect();
+            const x = (e.clientX - rect.left);
+            const y = (e.clientY - rect.top);
+            for(const p of poiList){
+                const dx = x - p.x; const dy = y - p.y; if(Math.hypot(dx,dy) < 12){ showDialog(p.id, p.desc); return; }
+            }
+        }
+        miniMap.addEventListener('click', miniMapClick);
+        window.addEventListener('resize', resizeMiniMap);
+        resizeMiniMap();
+
+        // Tutorial overlay element (inserted programmatically if missing)
+        if (!document.getElementById('tutorialOverlay')) {
+            const t = document.createElement('div');
+            t.id = 'tutorialOverlay';
+            t.innerHTML = '<div class="box"><h3>Jak grać</h3><p>Wybierz drzwi odpowiadające poprawnej odpowiedzi. Możesz używać przycisków dotykowych, kliknięć lub klawiszy strzałek. Trudność wpływa na liczbę serc.</p><p style="margin-top:8px"><button id="closeTutorial" class="btn">Zamknij</button></p></div>';
+            document.body.appendChild(t);
+            document.getElementById('closeTutorial').addEventListener('click', () => { t.style.display = 'none'; });
+        }
+
+        document.getElementById('tutorialBtn').addEventListener('click', function() {
+            const t = document.getElementById('tutorialOverlay');
+            if (t) t.style.display = 'flex';
+        });
+
+        // Show a live preview label of how many hearts the selected difficulty will give
+        const diffSelect = document.getElementById('difficultySelect');
+        const diffPreviewEl = document.getElementById('difficultyPreview');
+        function updateDifficultyPreview() {
+            const v = diffSelect.value;
+            let preview = (v === 'easy') ? 4 : (v === 'normal') ? 3 : 2;
+            if (diffPreviewEl) diffPreviewEl.textContent = 'Serca: ' + preview;
+        }
+        diffSelect.addEventListener('change', updateDifficultyPreview);
+        // initial preview
+        updateDifficultyPreview();
+
+        // Helper: map difficulty -> hearts
+        function getHeartsForDifficulty(diff) {
+            if (diff === 'easy') return 4;
+            if (diff === 'normal') return 3;
+            if (diff === 'hard') return 2;
+            return 3;
+        }
+
+        document.getElementById('startBtn').addEventListener('click', function() {
+            const diff = document.getElementById('difficultySelect').value;
+            hearts = getHeartsForDifficulty(diff);
+
+            // ensure hearts is at least 1
+            hearts = Math.max(1, hearts);
+
+            // lock difficulty during the game to avoid confusion
+            document.getElementById('difficultySelect').disabled = true;
+
+            // Reset score and question order
+            score = 0; currentQuestion = 0;
+            document.getElementById('score').textContent = score;
+            document.getElementById('question-num').textContent = 1;
+
+            // Shuffle questions for replay variability
+            shuffleArray(questions);
+
+            // update hearts display
+            updateHearts();
+
+            // hide visit CTA if visible
+            const visitBtn = document.getElementById('visitBtn'); if (visitBtn) visitBtn.style.display = 'none';
+
+            // hide welcome screen with fade
+            welcomeEl.classList.remove('visible');
+            document.getElementById('startBtn').classList.remove('pulse');
+            clearInterval(tipInterval);
+
+            // ensure player starts centered and no selection is active
+            selectedDoorIndex = null;
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 100;
+
+            // guard against stray touch/click events setting a door right after start
+            setTimeout(() => { selectedDoorIndex = null; }, 150);
+
+            initializeDoors();
+            updateQuestion();
+            updateProgressBar();
+            gameLoop();
+        });
+
+        // Visit button action
+        const visitBtnEl = document.getElementById('visitBtn');
+        if (visitBtnEl) visitBtnEl.addEventListener('click', () => { window.open(promoUrl, '_blank'); });
+
+        // Sound toggle
+        const soundToggle = document.getElementById('soundToggle');
+        if (soundToggle) {
+            soundToggle.addEventListener('click', () => {
+                soundEnabled = !soundEnabled;
+                soundToggle.textContent = soundEnabled ? '🔊' : '🔇';
+                soundToggle.setAttribute('aria-pressed', soundEnabled ? 'true' : 'false');
+            });
+        }
+
+        // Restart without reload
+        function restartGame() {
+            // reset state
+            score = 0; currentQuestion = 0;
+            // set hearts according to currently selected difficulty
+            const diff = document.getElementById('difficultySelect').value;
+            hearts = getHeartsForDifficulty(diff);
+
+            // enable changing difficulty again
+            document.getElementById('difficultySelect').disabled = false;
+
+            document.getElementById('score').textContent = score;
+            document.getElementById('question-num').textContent = 1;
+            updateHearts();
+            document.getElementById('gameOver').style.display = 'none';
+
+            // ensure no pre-existing door selection and reset player to center to avoid auto-entering
+            selectedDoorIndex = null;
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 100;
+
+            // guard against stray touch/click events setting a door right after restart
+            setTimeout(() => { selectedDoorIndex = null; }, 150);
+
+            // reshuffle and start
+            shuffleArray(questions);
+            initializeDoors();
+            updateQuestion();
+            updateProgressBar();
+            gameActive = true;
+            gameState = 'normal';
+        }
+        const restartBtn = document.getElementById('restartBtn'); if (restartBtn) restartBtn.addEventListener('click', restartGame);
+
+        // Confetti simple implementation
+        const confettiCanvas = document.getElementById('confettiCanvas');
+        const confettiCtx = confettiCanvas.getContext('2d');
+        let confettiParticles = [];
+        function resizeConfetti() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeConfetti);
+        resizeConfetti();
+
+        function startConfetti(duration = 1500) {
+            confettiParticles = [];
+            for (let i = 0; i < 80; i++) {
+                confettiParticles.push({ x: Math.random()*confettiCanvas.width, y: -10 - Math.random()*200, vx: (Math.random()-0.5)*4, vy: 2+Math.random()*4, size: 6+Math.random()*8, color: ['#ffd700','#ff6b6b','#51cf66','#4a90e2'][Math.floor(Math.random()*4)], rot: Math.random()*360, vr: (Math.random()-0.5)*6 });
+            }
+            const start = performance.now();
+            function frame(t) {
+                const elapsed = t - start;
+                confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+                for (let p of confettiParticles) {
+                    p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.rot += p.vr;
+                    confettiCtx.save();
+                    confettiCtx.translate(p.x,p.y);
+                    confettiCtx.rotate(p.rot*Math.PI/180);
+                    confettiCtx.fillStyle = p.color;
+                    confettiCtx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+                    confettiCtx.restore();
+                }
+                confettiParticles = confettiParticles.filter(p => p.y < confettiCanvas.height + 50);
+                if (elapsed < duration) requestAnimationFrame(frame);
+                else confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+            }
+            requestAnimationFrame(frame);
+        }
+    </script>
+</body>
+</html>
